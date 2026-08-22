@@ -1,0 +1,13 @@
+aws_region              = "us-east-1"
+environment             = "production"
+db_instance_class       = "db.t4g.medium"
+allocated_storage       = 100
+max_allocated_storage   = 500
+backup_retention_days   = 30
+backup_window           = "02:00-03:00"
+maintenance_window      = "sun:03:00-sun:04:00"
+deletion_protection     = true
+multi_az                = true
+skip_final_snapshot     = false
+monitoring_interval     = 60
+slow_query_duration_ms  = 500
