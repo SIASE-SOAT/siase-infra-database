@@ -5,12 +5,8 @@ variable "aws_region" {
 
 variable "environment" {
   type        = string
-  description = "Ambiente lógico."
-
-  validation {
-    condition     = contains(["homolog", "production"], var.environment)
-    error_message = "environment deve ser homolog ou production."
-  }
+  default     = "production"
+  description = "Ambiente fixo."
 }
 
 variable "project_name" {
@@ -50,15 +46,18 @@ variable "slow_query_duration_ms" {
 
 variable "backup_retention_days" {
   type        = number
-  description = "Homolog deve usar retenção menor; produção, maior."
+  default     = 1
+  description = "Retenção curta para o Learner Lab."
 }
 
 variable "backup_window" {
-  type = string
+  type    = string
+  default = "03:00-03:30"
 }
 
 variable "maintenance_window" {
-  type = string
+  type    = string
+  default = "sun:04:00-sun:04:30"
 }
 
 variable "monitoring_interval" {
@@ -67,11 +66,13 @@ variable "monitoring_interval" {
 }
 
 variable "deletion_protection" {
-  type = bool
+  type    = bool
+  default = false
 }
 
 variable "multi_az" {
-  type = bool
+  type    = bool
+  default = false
 }
 
 variable "skip_final_snapshot" {
