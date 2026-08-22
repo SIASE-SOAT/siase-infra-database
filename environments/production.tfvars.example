@@ -1,0 +1,12 @@
+aws_region              = "us-east-1"
+db_instance_class       = "db.t3.micro"
+allocated_storage       = 20
+max_allocated_storage   = 20
+backup_retention_days   = 1
+backup_window           = "02:00-03:00"
+maintenance_window      = "sun:03:00-sun:04:00"
+deletion_protection     = false
+multi_az                = false
+skip_final_snapshot     = true
+monitoring_interval     = 0
+slow_query_duration_ms  = 1000

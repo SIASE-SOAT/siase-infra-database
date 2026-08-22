@@ -1,0 +1,35 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    uses: ./.github/workflows/build-test.yml
+
+  deploy:
+    needs: build-test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      # Credenciais temporárias do Learner Lab: expiram ao fim da sessão de 4h
+      # e precisam ser atualizadas nos secrets do GitHub a cada nova sessão.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - run: terraform init
+        env:
+          TF_CLI_ARGS_init: >-
+            -backend-config=bucket=${{ vars.TF_STATE_BUCKET }}
+            -backend-config=region=${{ vars.AWS_REGION }}
+      - run: cp environments/production.tfvars.example environments/production.tfvars
+      - run: terraform apply -auto-approve -var-file=environments/production.tfvars
