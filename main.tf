@@ -104,27 +104,6 @@ resource "aws_db_parameter_group" "rds" {
   tags = local.common_tags
 }
 
-resource "aws_iam_role" "rds_monitoring" {
-  name = "${local.name}-rds-monitoring"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "monitoring.rds.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-    }]
-  })
-  tags = local.common_tags
-}
-
-resource "aws_iam_role_policy_attachment" "rds_monitoring" {
-  role       = aws_iam_role.rds_monitoring.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
-}
-
 resource "aws_db_instance" "rds" {
   identifier = local.name
 
@@ -155,10 +134,8 @@ resource "aws_db_instance" "rds" {
   copy_tags_to_snapshot = true
   publicly_accessible   = false
 
-  performance_insights_enabled    = true
-  performance_insights_kms_key_id = aws_kms_key.rds.arn
-  monitoring_interval             = var.monitoring_interval
-  monitoring_role_arn             = aws_iam_role.rds_monitoring.arn
+  performance_insights_enabled    = false
+  monitoring_interval             = 0
   enabled_cloudwatch_logs_exports = ["postgresql"]
   manage_master_user_password     = true
   master_user_secret_kms_key_id   = aws_kms_key.rds.arn
@@ -167,28 +144,28 @@ resource "aws_db_instance" "rds" {
 }
 
 resource "aws_ssm_parameter" "db_endpoint" {
-  name  = "/siase/${var.environment}/db-endpoint"
+  name  = "/siase/production/db-endpoint"
   type  = "String"
   value = aws_db_instance.rds.address
   tags  = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_name" {
-  name  = "/siase/${var.environment}/db-name"
+  name  = "/siase/production/db-name"
   type  = "String"
   value = var.db_name
   tags  = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_secret_arn" {
-  name  = "/siase/${var.environment}/db-secret-arn"
+  name  = "/siase/production/db-secret-arn"
   type  = "String"
   value = aws_db_instance.rds.master_user_secret[0].secret_arn
   tags  = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_client_sg_id" {
-  name  = "/siase/${var.environment}/db-client-sg-id"
+  name  = "/siase/production/db-client-sg-id"
   type  = "String"
   value = aws_security_group.db_clients.id
   tags  = local.common_tags

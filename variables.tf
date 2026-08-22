@@ -30,17 +30,17 @@ variable "db_username" {
 
 variable "db_instance_class" {
   type    = string
-  default = "db.t4g.micro"
+  default = "db.t3.micro"
 }
 
 variable "allocated_storage" {
   type    = number
-  default = 30
+  default = 20
 }
 
 variable "max_allocated_storage" {
   type    = number
-  default = 100
+  default = 20
 }
 
 variable "slow_query_duration_ms" {
@@ -63,7 +63,7 @@ variable "maintenance_window" {
 
 variable "monitoring_interval" {
   type    = number
-  default = 60
+  default = 0
 }
 
 variable "deletion_protection" {
@@ -76,7 +76,7 @@ variable "multi_az" {
 
 variable "skip_final_snapshot" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "tags" {
