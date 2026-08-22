@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "REPLACE_TF_STATE_BUCKET"
+    bucket       = "siase-tfstate-thiago-15soat"
     key          = "siase-infra-database/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true
