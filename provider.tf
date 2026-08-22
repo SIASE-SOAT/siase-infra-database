@@ -12,15 +12,15 @@ provider "aws" {
 }
 
 data "aws_ssm_parameter" "vpc_id" {
-  name = "/siase/${var.environment}/vpc-id"
+  name = "/siase/production/vpc-id"
 }
 
 data "aws_ssm_parameter" "private_subnet_ids" {
-  name = "/siase/${var.environment}/private-subnet-ids"
+  name = "/siase/production/private-subnet-ids"
 }
 
 data "aws_ssm_parameter" "eks_node_sg_id" {
-  name = "/siase/${var.environment}/eks-node-sg-id"
+  name = "/siase/production/eks-node-sg-id"
 }
 
 data "aws_caller_identity" "current" {}
