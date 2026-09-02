@@ -66,6 +66,16 @@ resource "aws_security_group_rule" "rds_from_db_clients" {
   description              = "Somente clientes do banco"
 }
 
+resource "aws_security_group_rule" "rds_from_eks_nodes" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.rds.id
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  source_security_group_id = data.aws_ssm_parameter.eks_node_sg_id.value
+  description              = "Pods do cluster SIASE"
+}
+
 resource "aws_security_group_rule" "rds_egress" {
   type              = "egress"
   security_group_id = aws_security_group.rds.id
