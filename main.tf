@@ -82,8 +82,8 @@ resource "aws_db_subnet_group" "rds" {
 }
 
 resource "aws_db_parameter_group" "rds" {
-  name   = "${local.name}-postgres16"
-  family = "postgres16"
+  name   = "${local.name}-postgres18"
+  family = "postgres18"
 
   parameter {
     name         = "shared_preload_libraries"
