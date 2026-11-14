@@ -12,7 +12,7 @@ locals {
 
 resource "aws_kms_key" "rds" {
   description             = "KMS key for SIASE RDS ${var.environment}"
-  deletion_window_in_days = 30
+  deletion_window_in_days = 7
   enable_key_rotation     = true
   tags                    = local.common_tags
 }
@@ -66,16 +66,6 @@ resource "aws_security_group_rule" "rds_from_db_clients" {
   description              = "Somente clientes do banco"
 }
 
-resource "aws_security_group_rule" "rds_from_eks_nodes" {
-  type                     = "ingress"
-  security_group_id        = aws_security_group.rds.id
-  from_port                = 5432
-  to_port                  = 5432
-  protocol                 = "tcp"
-  source_security_group_id = data.aws_ssm_parameter.eks_node_sg_id.value
-  description              = "Pods do cluster SIASE"
-}
-
 resource "aws_security_group_rule" "rds_egress" {
   type              = "egress"
   security_group_id = aws_security_group.rds.id
@@ -115,19 +105,20 @@ resource "aws_db_parameter_group" "rds" {
 }
 
 resource "aws_db_instance" "rds" {
-  identifier = local.name
+  for_each = var.databases
 
-  engine                = "postgres"
-  engine_version        = "16"
-  instance_class        = var.db_instance_class
-  allocated_storage     = var.allocated_storage
+  identifier           = "${local.name}-${each.key}"
+  engine               = "postgres"
+  engine_version       = "16.4"
+  instance_class       = var.db_instance_class
+  allocated_storage    = var.allocated_storage
   max_allocated_storage = var.max_allocated_storage
-  storage_type          = "gp3"
-  storage_encrypted     = true
-  kms_key_id            = aws_kms_key.rds.arn
+  storage_type         = "gp3"
+  storage_encrypted    = true
+  kms_key_id           = aws_kms_key.rds.arn
 
-  db_name  = var.db_name
-  username = var.db_username
+  db_name  = each.value.db_name
+  username = each.value.username
   port     = 5432
 
   db_subnet_group_name   = aws_db_subnet_group.rds.name
@@ -137,12 +128,11 @@ resource "aws_db_instance" "rds" {
   backup_retention_period = var.backup_retention_days
   backup_window           = var.backup_window
   maintenance_window      = var.maintenance_window
-
-  multi_az              = var.multi_az
-  deletion_protection   = var.deletion_protection
-  skip_final_snapshot   = var.skip_final_snapshot
-  copy_tags_to_snapshot = true
-  publicly_accessible   = false
+  multi_az                = var.multi_az
+  deletion_protection     = var.deletion_protection
+  skip_final_snapshot     = var.skip_final_snapshot
+  copy_tags_to_snapshot   = true
+  publicly_accessible     = false
 
   performance_insights_enabled    = false
   monitoring_interval             = 0
@@ -150,28 +140,31 @@ resource "aws_db_instance" "rds" {
   manage_master_user_password     = true
   master_user_secret_kms_key_id   = aws_kms_key.rds.arn
 
-  tags = local.common_tags
+  tags = merge(local.common_tags, { Service = each.key })
 }
 
 resource "aws_ssm_parameter" "db_endpoint" {
-  name  = "/siase/production/db-endpoint"
-  type  = "String"
-  value = aws_db_instance.rds.address
-  tags  = local.common_tags
+  for_each = var.databases
+  name     = "/siase/production/${each.key}/db-endpoint"
+  type     = "String"
+  value    = aws_db_instance.rds[each.key].address
+  tags     = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_name" {
-  name  = "/siase/production/db-name"
-  type  = "String"
-  value = var.db_name
-  tags  = local.common_tags
+  for_each = var.databases
+  name     = "/siase/production/${each.key}/db-name"
+  type     = "String"
+  value    = each.value.db_name
+  tags     = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_secret_arn" {
-  name  = "/siase/production/db-secret-arn"
-  type  = "String"
-  value = aws_db_instance.rds.master_user_secret[0].secret_arn
-  tags  = local.common_tags
+  for_each = var.databases
+  name     = "/siase/production/${each.key}/db-secret-arn"
+  type     = "String"
+  value    = aws_db_instance.rds[each.key].master_user_secret[0].secret_arn
+  tags     = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_client_sg_id" {

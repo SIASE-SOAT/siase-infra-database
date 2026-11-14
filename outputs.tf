@@ -1,15 +1,15 @@
-output "db_endpoint" {
-  value       = aws_db_instance.rds.address
-  description = "Endpoint privado do RDS."
+output "service_db_endpoints" {
+  value       = { for k, db in aws_db_instance.rds : k => db.address }
+  description = "Endpoints privados dos bancos por microsserviço."
 }
 
-output "db_name" {
-  value = var.db_name
+output "service_db_names" {
+  value = { for k, db in var.databases : k => db.db_name }
 }
 
-output "db_secret_arn" {
-  value       = aws_db_instance.rds.master_user_secret[0].secret_arn
-  description = "ARN do segredo gerenciado pelo RDS."
+output "service_db_secret_arns" {
+  value       = { for k, db in aws_db_instance.rds : k => db.master_user_secret[0].secret_arn }
+  description = "ARNs dos secrets gerenciados pelo RDS, por microsserviço."
 }
 
 output "db_client_sg_id" {
